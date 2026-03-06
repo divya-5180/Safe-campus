@@ -19,8 +19,6 @@ A web application that helps students quickly learn emergency response procedure
    pip install -r requirements.txt
 2. Run the app:
    python main.py
-3. Open browser and go to:
-   http://127.0.0.1:5000
 
 ## Project Structure
 hackathon/
@@ -33,4 +31,4 @@ hackathon/
 ## Team
 - Divya GC
 ## Live Demo
-https://garrison-unseething-overdelicately.ngrok-free.app
+https://garrison-unseething-overdelicately.ngrok-free.dev
