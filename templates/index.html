@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SafeCampus</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #0a0c0f; color: #e8edf5; min-height: 100vh; }
+    header { background: #10141a; border-bottom: 3px solid #ff4d1c; padding: 18px 32px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { font-size: 1.6rem; letter-spacing: 3px; }
+    header h1 span { color: #ff4d1c; }
+    .badge { color: #00e676; border: 1px solid #00e676; padding: 4px 12px; font-size: 0.75rem; letter-spacing: 2px; }
+    main { max-width: 1000px; margin: 0 auto; padding: 32px 20px; }
+    h2 { font-size: 2rem; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 4px; }
+    .sub { color: #6b7a8d; font-size: 0.85rem; margin-bottom: 28px; }
+    .card { background: #10141a; border: 1px solid #1e2d40; padding: 24px; margin-bottom: 20px; }
+    .card-title { font-size: 0.7rem; letter-spacing: 3px; color: #ff4d1c; margin-bottom: 14px; text-transform: uppercase; }
+    select { width: 100%; max-width: 400px; background: #0a0c0f; color: #e8edf5; border: 1px solid #1e2d40; padding: 12px 16px; font-size: 1rem; cursor: pointer; outline: none; }
+    select:hover, select:focus { border-color: #ff4d1c; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media(max-width:650px) { .grid { grid-template-columns: 1fr; } }
+    .step { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #1e2d40; cursor: pointer; }
+    .step:last-child { border-bottom: none; }
+    .step-num { background: rgba(255,77,28,0.1); border: 1px solid #ff4d1c; color: #ff4d1c; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; flex-shrink: 0; }
+    .step-text { font-size: 0.9rem; line-height: 1.5; padding-top: 4px; }
+    .step.done .step-num { background: rgba(0,230,118,0.1); border-color: #00e676; color: #00e676; }
+    .step.done .step-text { text-decoration: line-through; color: #6b7a8d; }
+    .check { display: flex; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid #1e2d40; cursor: pointer; }
+    .check:last-child { border-bottom: none; }
+    .check-box { width: 20px; height: 20px; border: 2px solid #6b7a8d; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.8rem; font-weight: bold; }
+    .check.checked .check-box { background: #00e676; border-color: #00e676; color: #000; }
+    .check.checked .check-label { text-decoration: line-through; color: #6b7a8d; }
+    .score-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: #6b7a8d; margin: 14px 0 6px; }
+    #score-val { color: #ffb31a; }
+    .track { height: 6px; background: #1e2d40; }
+    .fill { height: 100%; background: linear-gradient(90deg, #ff4d1c, #ffb31a); transition: width 0.4s; width: 0%; }
+    #status-text { margin-top: 8px; font-size: 0.78rem; letter-spacing: 2px; }
+    .prepared { color: #00e676; }
+    .needs { color: #ffb31a; }
+    .contact { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1e2d40; }
+    .contact:last-child { border-bottom: none; }
+    .contact-name { font-weight: 600; }
+    .contact-num { color: #29b6f6; font-size: 0.9rem; }
+    .json-card { background: #10141a; border: 1px solid #1e2d40; border-top: 3px solid #29b6f6; padding: 24px; margin-bottom: 20px; }
+    .json-label { font-size: 0.7rem; letter-spacing: 3px; color: #29b6f6; margin-bottom: 12px; text-transform: uppercase; }
+    pre { font-family: monospace; font-size: 0.82rem; line-height: 1.7; color: #a8d8a8; white-space: pre-wrap; }
+    #response { display: none; }
+    .tip { padding: 8px 0; border-bottom: 1px solid #1e2d40; font-size: 0.88rem; color: #6b7a8d; }
+    .tip:last-child { border-bottom: none; }
+    .tip::before { content: "▸ "; color: #ffb31a; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Safe<span>Campus</span></h1>
+  <div class="badge">● SYSTEM ACTIVE</div>
+</header>
+
+<main>
+  <h2>Disaster Preparedness</h2>
+  <p class="sub">SELECT A DISASTER TYPE TO BEGIN</p>
+
+  <div class="card">
+    <div class="card-title">// Step 01 — Select Disaster Type</div>
+    <select id="disaster-select" onchange="loadDisaster(this.value)">
+      <option value="">— SELECT DISASTER TYPE —</option>
+      {% for d in disaster_types %}
+        <option value="{{ d }}">{{ d }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div id="response">
+    <div class="grid">
+      <div class="card">
+        <div class="card-title">// Immediate Actions</div>
+        <div id="steps-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">// Preparedness Checklist</div>
+        <div id="checklist"></div>
+        <div class="score-row"><span>READINESS SCORE</span><span id="score-val">0%</span></div>
+        <div class="track"><div class="fill" id="fill"></div></div>
+        <div id="status-text"></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-title">// Emergency Contacts</div>
+        <div id="contacts"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">// Safety Tips</div>
+        <div id="tips"></div>
+      </div>
+    </div>
+
+    <div class="json-card">
+      <div class="json-label">// JSON Schema Output</div>
+      <pre id="json-out"></pre>
+    </div>
+  </div>
+</main>
+
+<script>
+const EXTRA = {
+  EARTHQUAKE: {
+    checklist: ["I know DROP, COVER, HOLD ON","Emergency kit is ready","I know all exit routes","Contacts saved in phone","First aid kit is stocked","Heavy furniture is secured"],
+    tips: ["Identify safe spots in every room","Prepare a Go-Bag with essentials","Know your campus assembly point","Beware of aftershocks for 24 hours","Don't re-enter damaged buildings"]
+  },
+  FIRE: {
+    checklist: ["I know fire extinguisher locations","I know all fire exit routes","I know the assembly point","I have done a fire drill","I know the PASS method","Contacts saved in phone"],
+    tips: ["PASS: Pull, Aim, Squeeze, Sweep","Never prop fire doors open","Know two escape routes always","If trapped, signal from a window","Smoke is more dangerous than flames"]
+  },
+  FLOOD: {
+    checklist: ["I know flood evacuation routes","I know where higher ground is","Waterproof document storage ready","3-day supply of bottled water","I know how to shut off electricity","Signed up for emergency alerts"],
+    tips: ["Never drive through floodwater","Keep documents in waterproof bags","Electrical hazards remain after water","Floodwater can carry disease","Monitor weather updates continuously"]
+  },
+  CYCLONE: {
+    checklist: ["I know nearest cyclone shelter","Emergency kit has battery radio","7-day food and water stored","All loose outdoor items secured","I can shut off gas and electricity","Family has a communication plan"],
+    tips: ["Act immediately on 48hr warnings","Identify strongest room in building","Never park under trees in cyclone season","Report downed power lines immediately","Keep a physical map as backup"]
+  }
+};
+
+let checkStates = {};
+let currentData = null;
+
+function loadDisaster(type) {
+  if (!type) return;
+  fetch("/get_disaster", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ disaster_type: type })
+  })
+  .then(res => res.json())
+  .then(data => {
+    currentData = data;
+    checkStates = {};
+    const extra = EXTRA[type];
+
+    // Steps
+    const stepsDiv = document.getElementById("steps-list");
+    stepsDiv.innerHTML = "";
+    data.safety_actions.forEach((action, i) => {
+      const d = document.createElement("div");
+      d.className = "step";
+      d.id = "step-" + i;
+      d.onclick = () => {
+        d.classList.toggle("done");
+        const n = d.querySelector(".step-num");
+        n.textContent = d.classList.contains("done") ? "✓" : String(i+1).padStart(2,"0");
+      };
+      d.innerHTML = `<div class="step-num">${String(i+1).padStart(2,"0")}</div><div class="step-text">${action}</div>`;
+      stepsDiv.appendChild(d);
+    });
+
+    // Checklist
+    const checkDiv = document.getElementById("checklist");
+    checkDiv.innerHTML = "";
+    extra.checklist.forEach((item, i) => {
+      checkStates[i] = false;
+      const d = document.createElement("div");
+      d.className = "check";
+      d.id = "chk-" + i;
+      d.onclick = () => toggleCheck(i, extra.checklist.length);
+      d.innerHTML = `<div class="check-box" id="cb-${i}"></div><div class="check-label">${item}</div>`;
+      checkDiv.appendChild(d);
+    });
+    updateScore(extra.checklist.length);
+
+    // Contacts
+    const contactDiv = document.getElementById("contacts");
+    contactDiv.innerHTML = "";
+    data.emergency_contacts.forEach(c => {
+      const parts = c.split(": ");
+      const d = document.createElement("div");
+      d.className = "contact";
+      d.innerHTML = `<span class="contact-name">${parts[0]}</span><span class="contact-num">${parts[1] || ""}</span>`;
+      contactDiv.appendChild(d);
+    });
+
+    // Tips
+    const tipsDiv = document.getElementById("tips");
+    tipsDiv.innerHTML = "";
+    extra.tips.forEach(tip => {
+      const d = document.createElement("div");
+      d.className = "tip";
+      d.textContent = tip;
+      tipsDiv.appendChild(d);
+    });
+
+    // JSON
+    updateJSON(type, 0, "Needs Improvement");
+    document.getElementById("response").style.display = "block";
+  });
+}
+
+function toggleCheck(i, total) {
+  checkStates[i] = !checkStates[i];
+  const el = document.getElementById("chk-" + i);
+  const cb = document.getElementById("cb-" + i);
+  el.classList.toggle("checked", checkStates[i]);
+  cb.textContent = checkStates[i] ? "✓" : "";
+  updateScore(total);
+}
+
+function updateScore(total) {
+  const checked = Object.values(checkStates).filter(Boolean).length;
+  const pct = Math.round((checked / total) * 100);
+  document.getElementById("score-val").textContent = pct + "%";
+  document.getElementById("fill").style.width = pct + "%";
+  const status = pct >= 70 ? "Prepared" : "Needs Improvement";
+  const el = document.getElementById("status-text");
+  el.textContent = "▸ STATUS: " + status.toUpperCase();
+  el.className = pct >= 70 ? "prepared" : "needs";
+  updateJSON(currentData.disaster_type, pct, status);
+}
+
+function updateJSON(type, score, status) {
+  document.getElementById("json-out").textContent = JSON.stringify({
+    disaster_type: type,
+    preparedness_score: score,
+    safety_actions: currentData.safety_actions,
+    emergency_contacts: currentData.emergency_contacts,
+    status: status
+  }, null, 2);
+}
+</script>
+</body>
+</html>
