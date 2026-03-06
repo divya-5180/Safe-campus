@@ -6,7 +6,7 @@ app = Flask(__name__)
 disasters = {
     "EARTHQUAKE": {
         "safety_actions": ["Drop, Cover, Hold On", "Stay away from windows", "Evacuate after shaking stops"],
-        "emergency_contacts": ["Police: 7676154914", "Ambulance: 108", "Disaster Helpline: 1078"]
+        "emergency_contacts": ["Police: 7676154914", "Ambulance: 8217850392", "Disaster Helpline: 1078"]
     },
     "FIRE": {
         "safety_actions": ["Activate fire alarm", "Evacuate via fire exits", "Stay low if there's smoke"],
